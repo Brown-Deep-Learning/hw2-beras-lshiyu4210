@@ -18,13 +18,17 @@ class Dense(Diffable):
         """
         Forward pass for a dense layer! Refer to lecture slides for how this is computed.
         """
-        return NotImplementedError
+        return x @ self.w + self.b
 
     def get_input_gradients(self) -> list[Tensor]:
-        return NotImplementedError
+        return [self.w]
 
     def get_weight_gradients(self) -> list[Tensor]:
-        return NotImplementedError
+        grad_w = self.inputs[0].T
+        grad_b = np.ones_like(grad_w)
+        return [grad_w, grad_b]
+
+
 
     @staticmethod
     def _initialize_weight(initializer, input_size, output_size) -> tuple[Variable, Variable]:
@@ -53,4 +57,21 @@ class Dense(Diffable):
             "kaiming",
         ), f"Unknown dense weight initialization strategy '{initializer}' requested"
 
-        return None, None
+        biases = Variable(np.zeros(output_size))
+
+        if initializer == "zero":
+            weights = Variable(np.zeros((input_size, output_size)))
+
+        elif initializer == "normal":
+            weights = Variable(np.random.randn(input_size, output_size))
+
+        elif initializer == "xavier":
+            std = np.sqrt(2 / (input_size + output_size))
+            weights = Variable(np.random.randn(input_size, output_size) * std)
+
+        elif initializer == "kaiming":
+            std = np.sqrt(2 / input_size) 
+            weights = Variable(np.random.randn(input_size, output_size) * std)
+    
+
+        return weights, biases
