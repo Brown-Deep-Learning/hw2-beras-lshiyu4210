@@ -24,8 +24,9 @@ class Dense(Diffable):
         return [self.w]
 
     def get_weight_gradients(self) -> list[Tensor]:
-        grad_w = self.inputs[0].T
-        grad_b = np.ones_like(grad_w)
+        grad_w = np.expand_dims(self.inputs[0], axis = -1)
+        grad_b = np.ones_like(self.b)
+
         return [grad_w, grad_b]
 
 

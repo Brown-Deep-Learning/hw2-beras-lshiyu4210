@@ -57,7 +57,7 @@ class Model(Diffable):
         """
         Return the weights of the model by iterating through the layers
         """
-        return NotImplementedError
+        return [weight for layer in self.layers for weight in layer.weights]
 
     def compile(self, optimizer: Diffable, loss_fn: Diffable, acc_fn: Callable):
         """
@@ -74,7 +74,25 @@ class Model(Diffable):
         Trains the model by iterating over the input dataset and feeding input batches
         into the batch_step method with training. At the end, the metrics are returned.
         """
-        return NotImplementedError
+        num_batches = len(x) // batch_size
+        metrics_history = defaultdict(list)
+
+        for epoch in range(epochs):
+            batch_metrics = defaultdict(list)
+
+            for batch_num in range(num_batches):
+                batch_x = x[batch_num * batch_size : (batch_num + 1) * batch_size]
+                batch_y = y[batch_num * batch_size : (batch_num + 1) * batch_size]
+                batch_stats = self.batch_step(batch_x, batch_y, training=True)
+
+                for key, value in batch_stats.items():
+                    batch_metrics[key].append(value)
+
+                print_stats(batch_stats, batch_num=batch_num, num_batches=num_batches, epoch=epoch)
+
+            update_metric_dict(metrics_history, batch_metrics)
+            print_stats(batch_metrics, epoch=epoch, avg=True)
+
 
     def evaluate(self, x: Tensor, y: Union[Tensor, np.ndarray], batch_size: int):
         """
